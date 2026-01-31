@@ -1,4 +1,4 @@
-package com.example.verhack.module.combat;
+package com.example.verhack.module.combat.aimbot;
 
 import com.example.verhack.module.Category;
 import com.example.verhack.module.Module;
@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
@@ -21,7 +23,8 @@ import java.util.List;
 
 public class BowAimbot extends Module {
     private double range = 40.0;
-    private float rotationSpeed = 15.0f;
+    private float smoothness = 0.5f;
+    private float fov = 90.0f;
     private LivingEntity currentTarget = null;
 
     public BowAimbot() {
@@ -53,7 +56,8 @@ public class BowAimbot extends Module {
         }
 
         List<LivingEntity> targets = mc().level.getEntitiesOfClass(LivingEntity.class, mc().player.getBoundingBox().inflate(range), e ->
-                e != mc().player && e.isAlive() && mc().player.distanceTo(e) <= range
+                e != mc().player && e.isAlive() && mc().player.distanceTo(e) <= range &&
+                mc().player.hasLineOfSight(e) && isInFov(e, fov)
         );
 
         targets.sort(Comparator.comparingDouble(e -> mc().player.distanceTo(e)));
@@ -64,6 +68,13 @@ public class BowAimbot extends Module {
         } else {
             currentTarget = null;
         }
+    }
+
+    private boolean isInFov(Entity entity, float fov) {
+        Vec3 targetVec = entity.position().add(0, entity.getEyeHeight(), 0).subtract(mc().player.getEyePosition());
+        Vec3 lookVec = mc().player.getLookAngle();
+        double angle = Math.toDegrees(Math.acos(lookVec.dot(targetVec.normalize())));
+        return angle <= fov / 2.0;
     }
 
     private void smoothLookAt(Entity target) {
@@ -93,7 +104,7 @@ public class BowAimbot extends Module {
         float currentYaw = mc().player.getYRot();
         float currentPitch = mc().player.getXRot();
 
-        float speedFactor = rotationSpeed / 100.0f;
+        float speedFactor = (1.0f - smoothness) * 0.4f + 0.02f;
         float nextYaw = currentYaw + Mth.wrapDegrees(Mth.wrapDegrees(targetYaw - currentYaw) * speedFactor);
         float nextPitch = currentPitch + (targetPitch - currentPitch) * speedFactor;
 
@@ -113,9 +124,22 @@ public class BowAimbot extends Module {
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
             AABB bb = currentTarget.getBoundingBox();
-            LevelRenderer.renderLineBox(poseStack, builder, bb, 1.0f, 0.0f, 0.0f, 1.0f); // Red box for target
+            float r = 0, g = 0, b = 0;
+
+            if (currentTarget instanceof Monster || currentTarget instanceof Player) {
+                r = 1.0f; // Red for enemies
+            } else {
+                g = 1.0f; // Green for others (mobs)
+            }
+
+            LevelRenderer.renderLineBox(poseStack, builder, bb, r, g, b, 1.0f);
 
             poseStack.popPose();
         }
     }
+
+    public float getSmoothness() { return smoothness; }
+    public void setSmoothness(float smoothness) { this.smoothness = smoothness; }
+    public float getFov() { return fov; }
+    public void setFov(float fov) { this.fov = fov; }
 }

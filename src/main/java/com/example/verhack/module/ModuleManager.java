@@ -1,13 +1,13 @@
 package com.example.verhack.module;
 
-import com.example.verhack.module.combat.BowAimbot;
+import com.example.verhack.module.combat.aimbot.BowAimbot;
 import com.example.verhack.module.combat.KillAura;
-import com.example.verhack.module.combat.MeleeAimbot;
+import com.example.verhack.module.combat.aimbot.MeleeAimbot;
 import com.example.verhack.module.combat.ProjectileHoming;
 import com.example.verhack.module.exploit.ItemSpawner;
-import com.example.verhack.module.movement.BoatFly;
+import com.example.verhack.module.movement.*;
 import com.example.verhack.module.player.GamemodeSwitcher;
-import com.example.verhack.module.player.Telekinesis;
+import com.example.verhack.module.player.telekinesis.Telekinesis;
 import com.example.verhack.module.exploit.OpTaker;
 import com.example.verhack.module.player.Teleport;
 import com.example.verhack.module.render.FreeCam;
@@ -31,6 +31,9 @@ public class ModuleManager {
         modules.add(new Telekinesis());
         modules.add(new XRay());
         modules.add(new BoatFly());
+        modules.add(new Fly());
+        modules.add(new NoFall());
+        modules.add(new Speed());
         modules.add(new Teleport());
         modules.add(new GamemodeSwitcher());
         modules.add(new TimeChanger());

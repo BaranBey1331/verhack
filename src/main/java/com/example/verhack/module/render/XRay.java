@@ -24,7 +24,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class XRay extends Module {
-    private final List<BlockPos> ores = new ArrayList<>();
+    private static class OrePos {
+        BlockPos pos;
+        Block block;
+        OrePos(BlockPos pos, Block block) {
+            this.pos = pos;
+            this.block = block;
+        }
+    }
+    private final List<OrePos> ores = new ArrayList<>();
     private final Set<Block> filteredBlocks = new HashSet<>();
     private int radius = 24;
     private long lastScanTime = 0;
@@ -49,6 +57,8 @@ public class XRay extends Module {
         filteredBlocks.add(Blocks.ANCIENT_DEBRIS);
         filteredBlocks.add(Blocks.NETHER_QUARTZ_ORE);
         filteredBlocks.add(Blocks.NETHER_GOLD_ORE);
+        filteredBlocks.add(Blocks.COAL_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_COAL_ORE);
     }
 
     @Override
@@ -91,17 +101,15 @@ public class XRay extends Module {
     private void scanForOres(BlockPos center, int r) {
         if (mc().level == null) return;
 
-        List<BlockPos> foundOres = new ArrayList<>();
+        List<OrePos> foundOres = new ArrayList<>();
 
         for (int x = -r; x <= r; x++) {
             for (int y = -r; y <= r; y++) {
                 for (int z = -r; z <= r; z++) {
                     BlockPos pos = center.offset(x, y, z);
-                    // We must be careful about accessing world state from another thread.
-                    // In many Minecraft versions, getBlockState is somewhat thread-safe for reading.
                     BlockState state = mc().level.getBlockState(pos);
                     if (isOre(state)) {
-                        foundOres.add(pos);
+                        foundOres.add(new OrePos(pos, state.getBlock()));
                     }
                 }
             }
@@ -144,14 +152,27 @@ public class XRay extends Module {
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
             synchronized (ores) {
-                for (BlockPos pos : ores) {
-                    LevelRenderer.renderLineBox(poseStack, builder, new AABB(pos), 0.0f, 1.0f, 1.0f, 1.0f);
+                for (OrePos ore : ores) {
+                    float[] color = getOreColor(ore.block);
+                    LevelRenderer.renderLineBox(poseStack, builder, new AABB(ore.pos), color[0], color[1], color[2], 1.0f);
                 }
             }
 
             poseStack.popPose();
-            // Note: In some versions, you might need to end the batch here if it's not handled by the event
         }
+    }
+
+    private float[] getOreColor(Block block) {
+        if (block == Blocks.DIAMOND_ORE || block == Blocks.DEEPSLATE_DIAMOND_ORE) return new float[]{0.0f, 1.0f, 1.0f}; // Cyan
+        if (block == Blocks.GOLD_ORE || block == Blocks.DEEPSLATE_GOLD_ORE || block == Blocks.NETHER_GOLD_ORE) return new float[]{1.0f, 1.0f, 0.0f}; // Yellow
+        if (block == Blocks.IRON_ORE || block == Blocks.DEEPSLATE_IRON_ORE) return new float[]{1.0f, 1.0f, 1.0f}; // White
+        if (block == Blocks.EMERALD_ORE || block == Blocks.DEEPSLATE_EMERALD_ORE) return new float[]{0.0f, 1.0f, 0.0f}; // Green
+        if (block == Blocks.LAPIS_ORE || block == Blocks.DEEPSLATE_LAPIS_ORE) return new float[]{0.0f, 0.0f, 1.0f}; // Blue
+        if (block == Blocks.COPPER_ORE || block == Blocks.DEEPSLATE_COPPER_ORE) return new float[]{1.0f, 0.5f, 0.0f}; // Orange
+        if (block == Blocks.ANCIENT_DEBRIS) return new float[]{0.5f, 0.2f, 0.0f}; // Brown
+        if (block == Blocks.NETHER_QUARTZ_ORE) return new float[]{0.8f, 0.8f, 0.8f}; // Light Gray
+        if (block == Blocks.COAL_ORE || block == Blocks.DEEPSLATE_COAL_ORE) return new float[]{0.2f, 0.2f, 0.2f}; // Dark Gray
+        return new float[]{1.0f, 1.0f, 1.0f};
     }
 
     public int getRadius() {
