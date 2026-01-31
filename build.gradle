@@ -10,7 +10,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 
 group = 'com.example'
-version = '1.0-SNAPSHOT'
+version = 'v2-Alpha'
 
 java {
     archivesBaseName = 'verhack'

@@ -1,6 +1,7 @@
 package com.example.verhack.module;
 
 import com.example.verhack.module.combat.KillAura;
+import com.example.verhack.module.player.Telekinesis;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,6 +16,7 @@ public class ModuleManager {
     public ModuleManager() {
         // Register modules here
         modules.add(new KillAura());
+        modules.add(new Telekinesis());
 
         MinecraftForge.EVENT_BUS.register(this);
     }

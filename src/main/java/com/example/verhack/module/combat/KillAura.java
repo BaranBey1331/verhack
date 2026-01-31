@@ -6,13 +6,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class KillAura extends Module {
     private double range = 4.5;
-    private int attackDelay = 0;
+    private boolean rotations = true;
+    private float rotationSpeed = 5.0f;
 
     public KillAura() {
         super("KillAura", "Automatically attacks entities around you", Category.COMBAT);
@@ -21,11 +23,6 @@ public class KillAura extends Module {
     @Override
     public void onTick() {
         if (mc().player == null || mc().level == null || mc().screen != null) return;
-
-        if (attackDelay > 0) {
-            attackDelay--;
-            return;
-        }
 
         // Search for targets using a bounding box inflated by the range
         AABB area = mc().player.getBoundingBox().inflate(range);
@@ -40,15 +37,18 @@ public class KillAura extends Module {
             LivingEntity target = targets.get(0);
 
             // Look at the target before attacking
-            lookAt(target);
+            if (rotations) {
+                smoothLookAt(target);
+            }
 
-            attack(target);
-            // Default cooldown: roughly 0.5 seconds (10 ticks)
-            attackDelay = 10;
+            // Attack logic: check attack strength (cooldown)
+            if (mc().player.getAttackStrengthScale(0.0f) >= 0.9f) {
+                attack(target);
+            }
         }
     }
 
-    private void lookAt(Entity target) {
+    private void smoothLookAt(Entity target) {
         if (mc().player == null) return;
 
         double diffX = target.getX() - mc().player.getX();
@@ -56,11 +56,22 @@ public class KillAura extends Module {
         double diffZ = target.getZ() - mc().player.getZ();
         double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-        float yaw = (float) (Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0F);
-        float pitch = (float) (-Math.toDegrees(Math.atan2(diffY, diffXZ)));
+        float targetYaw = (float) (Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0F);
+        float targetPitch = (float) (-Math.toDegrees(Math.atan2(diffY, diffXZ)));
 
-        mc().player.setYRot(yaw);
-        mc().player.setXRot(pitch);
+        float currentYaw = mc().player.getYRot();
+        float currentPitch = mc().player.getXRot();
+
+        // Smoothly interpolate yaw
+        float yawDiff = Mth.wrapDegrees(targetYaw - currentYaw);
+        float nextYaw = currentYaw + Mth.clamp(yawDiff, -rotationSpeed, rotationSpeed);
+
+        // Smoothly interpolate pitch
+        float pitchDiff = targetPitch - currentPitch;
+        float nextPitch = currentPitch + Mth.clamp(pitchDiff, -rotationSpeed, rotationSpeed);
+
+        mc().player.setYRot(nextYaw);
+        mc().player.setXRot(nextPitch);
     }
 
     private void attack(Entity target) {
@@ -81,5 +92,21 @@ public class KillAura extends Module {
     public void incrementRange() {
         this.range += 0.5;
         if (this.range > 10.0) this.range = 2.0;
+    }
+
+    public boolean isRotations() {
+        return rotations;
+    }
+
+    public void setRotations(boolean rotations) {
+        this.rotations = rotations;
+    }
+
+    public float getRotationSpeed() {
+        return rotationSpeed;
+    }
+
+    public void setRotationSpeed(float rotationSpeed) {
+        this.rotationSpeed = rotationSpeed;
     }
 }
