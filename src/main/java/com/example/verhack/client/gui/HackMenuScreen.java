@@ -98,7 +98,7 @@ public class HackMenuScreen extends Screen {
 
                             @Override
                             protected void applyValue() {
-                                ka.setRotationSpeed(1.0 + (float)this.value * 19.0f);
+                                ka.setRotationSpeed(1.0f + (float)this.value * 19.0f);
                             }
                         };
                         addRenderableWidget(speedSlider);
