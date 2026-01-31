@@ -51,27 +51,30 @@ public class HackMenuScreen extends Screen {
         if (Verhack.getInstance().getModuleManager() != null) {
             List<Module> modules = Verhack.getInstance().getModuleManager().getModulesByCategory(selectedCategory);
             for (Module module : modules) {
-                Button modBtn = Button.builder(Component.literal(module.getName() + (module.isEnabled() ? " [ON]" : " [OFF]")), b -> {
+                String status = module.isEnabled() ? " [ENABLED]" : " [DISABLED]";
+                Button modBtn = Button.builder(Component.literal(module.getName() + status), b -> {
                     module.toggle();
-                    b.setMessage(Component.literal(module.getName() + (module.isEnabled() ? " [ON]" : " [OFF]")));
-                }).bounds(modXOffset, modYOffset, 150, 20).build();
+                    updateButtons(); // Refresh all buttons to update status and settings visibility
+                }).bounds(modXOffset, modYOffset, 160, 20).build();
 
                 addRenderableWidget(modBtn);
                 modYOffset += 25;
 
-                // Add KillAura settings
-                if (module instanceof KillAura ka) {
-                    Button rangeBtn = Button.builder(Component.literal("Range: " + ka.getRange()), b -> {
-                        ka.incrementRange();
-                        b.setMessage(Component.literal("Range: " + ka.getRange()));
-                    }).bounds(modXOffset + 10, modYOffset, 130, 20).build();
-                    addRenderableWidget(rangeBtn);
-                    modYOffset += 25;
+                // Add settings if enabled
+                if (module.isEnabled()) {
+                    if (module instanceof KillAura ka) {
+                        Button rangeBtn = Button.builder(Component.literal(" - Range: " + ka.getRange()), b -> {
+                            ka.incrementRange();
+                            b.setMessage(Component.literal(" - Range: " + ka.getRange()));
+                        }).bounds(modXOffset, modYOffset, 160, 20).build();
+                        addRenderableWidget(rangeBtn);
+                        modYOffset += 25;
+                    }
                 }
 
-                if (modYOffset > this.height - 40) {
+                if (modYOffset > this.height - 60) {
                     modYOffset = 40;
-                    modXOffset += 160;
+                    modXOffset += 170;
                 }
             }
         }

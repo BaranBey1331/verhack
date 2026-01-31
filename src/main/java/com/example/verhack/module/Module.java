@@ -3,7 +3,10 @@ package com.example.verhack.module;
 import net.minecraft.client.Minecraft;
 
 public abstract class Module {
-    protected static final Minecraft mc = Minecraft.getInstance();
+    protected static Minecraft mc() {
+        return Minecraft.getInstance();
+    }
+
     private final String name;
     private final String description;
     private final Category category;
