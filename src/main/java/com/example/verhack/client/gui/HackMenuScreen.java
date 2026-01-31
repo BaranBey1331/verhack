@@ -34,10 +34,10 @@ public class HackMenuScreen extends Screen {
         // Category buttons (left side)
         for (Category category : Category.values()) {
             final Category cat = category;
-            NeonButton btn = Button.builder(Component.literal(cat.name()), b -> {
+            NeonButton btn = new NeonButton(Button.builder(Component.literal(cat.name()), b -> {
                 selectedCategory = cat;
                 updateButtons();
-            }).pos(xOffset, yOffset).size(80, 20).build(NeonButton::new);
+            }).pos(xOffset, yOffset).size(80, 20));
 
             if (selectedCategory == cat) {
                 btn.setMessage(Component.literal("> " + cat.name()));
@@ -55,10 +55,10 @@ public class HackMenuScreen extends Screen {
             for (Module module : modules) {
                 String status = module.isEnabled() ? " [ON]" : " [OFF]";
 
-                NeonButton modBtn = Button.builder(Component.literal(module.getName() + status), b -> {
+                NeonButton modBtn = new NeonButton(Button.builder(Component.literal(module.getName() + status), b -> {
                     module.toggle();
                     updateButtons();
-                }).pos(modXOffset, modYOffset).size(160, 20).build(NeonButton::new);
+                }).pos(modXOffset, modYOffset).size(160, 20));
 
                 addRenderableWidget(modBtn);
                 modYOffset += 25;
@@ -82,10 +82,10 @@ public class HackMenuScreen extends Screen {
                         modYOffset += 22;
 
                         // Rotations Toggle
-                        NeonButton rotBtn = Button.builder(Component.literal("Rotations: " + (ka.isRotations() ? "ON" : "OFF")), b -> {
+                        NeonButton rotBtn = new NeonButton(Button.builder(Component.literal("Rotations: " + (ka.isRotations() ? "ON" : "OFF")), b -> {
                             ka.setRotations(!ka.isRotations());
                             updateButtons();
-                        }).pos(modXOffset + 10, modYOffset).size(140, 20).build(NeonButton::new);
+                        }).pos(modXOffset + 10, modYOffset).size(140, 20));
                         addRenderableWidget(rotBtn);
                         modYOffset += 22;
 
