@@ -5,10 +5,12 @@ import com.example.verhack.module.Category;
 import com.example.verhack.module.Module;
 import com.example.verhack.module.combat.KillAura;
 import com.example.verhack.module.combat.ProjectileHoming;
-import com.example.verhack.module.movement.BoatFly;
+import com.example.verhack.module.combat.aimbot.*;
+import com.example.verhack.module.movement.*;
 import com.example.verhack.module.render.XRay;
 import com.example.verhack.module.world.TimeChanger;
 import com.example.verhack.module.player.GamemodeSwitcher;
+import com.example.verhack.module.player.telekinesis.Telekinesis;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.minecraft.client.Minecraft;
@@ -154,6 +156,32 @@ public class HackMenuScreen extends Screen {
                         };
                         addRenderableWidget(speedSlider);
                         modYOffset += 25;
+                    } else if (module instanceof MeleeAimbot ma) {
+                        AbstractSliderButton smoothSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Smoothness: " + String.format("%.2f", ma.getSmoothness())), ma.getSmoothness()) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Smoothness: " + String.format("%.2f", ma.getSmoothness()))); }
+                            @Override protected void applyValue() { ma.setSmoothness((float)this.value); }
+                        };
+                        addRenderableWidget(smoothSlider);
+                        modYOffset += 22;
+                        AbstractSliderButton fovSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("FOV: " + (int)ma.getFov()), ma.getFov() / 180.0) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("FOV: " + (int)ma.getFov())); }
+                            @Override protected void applyValue() { ma.setFov((float)(this.value * 180.0)); }
+                        };
+                        addRenderableWidget(fovSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof BowAimbot ba) {
+                        AbstractSliderButton smoothSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Smoothness: " + String.format("%.2f", ba.getSmoothness())), ba.getSmoothness()) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Smoothness: " + String.format("%.2f", ba.getSmoothness()))); }
+                            @Override protected void applyValue() { ba.setSmoothness((float)this.value); }
+                        };
+                        addRenderableWidget(smoothSlider);
+                        modYOffset += 22;
+                        AbstractSliderButton fovSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("FOV: " + (int)ba.getFov()), ba.getFov() / 180.0) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("FOV: " + (int)ba.getFov())); }
+                            @Override protected void applyValue() { ba.setFov((float)(this.value * 180.0)); }
+                        };
+                        addRenderableWidget(fovSlider);
+                        modYOffset += 25;
                     } else if (module instanceof ProjectileHoming ph) {
                         NeonButton glowBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Glow Target: " + (ph.isGlowTarget() ? "ON" : "OFF")), b -> {
                             ph.setGlowTarget(!ph.isGlowTarget());
@@ -161,17 +189,31 @@ public class HackMenuScreen extends Screen {
                         });
                         addRenderableWidget(glowBtn);
                         modYOffset += 22;
+                    } else if (module instanceof Telekinesis tk) {
+                        AbstractSliderButton distSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Distance: " + String.format("%.1f", tk.getTargetDistance())), (tk.getTargetDistance() - 2.0) / 18.0) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Distance: " + String.format("%.1f", tk.getTargetDistance()))); }
+                            @Override protected void applyValue() { tk.setTargetDistance(2.0 + this.value * 18.0); }
+                        };
+                        addRenderableWidget(distSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof Fly fly) {
+                        AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Speed: " + String.format("%.1f", fly.getSpeed())), (fly.getSpeed() - 0.1) / 9.9) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Speed: " + String.format("%.1f", fly.getSpeed()))); }
+                            @Override protected void applyValue() { fly.setSpeed(0.1 + this.value * 9.9); }
+                        };
+                        addRenderableWidget(speedSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof Speed speedMod) {
+                        AbstractSliderButton multSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Multiplier: " + String.format("%.1f", speedMod.getMultiplier())), (speedMod.getMultiplier() - 1.0) / 4.0) {
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Multiplier: " + String.format("%.1f", speedMod.getMultiplier()))); }
+                            @Override protected void applyValue() { speedMod.setMultiplier(1.0 + this.value * 4.0); }
+                        };
+                        addRenderableWidget(multSlider);
+                        modYOffset += 25;
                     } else if (module instanceof BoatFly bf) {
                         AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Speed: " + String.format("%.1f", bf.getSpeed())), (bf.getSpeed() - 0.1) / 4.9) {
-                            @Override
-                            protected void updateMessage() {
-                                this.setMessage(Component.literal("Speed: " + String.format("%.1f", bf.getSpeed())));
-                            }
-
-                            @Override
-                            protected void applyValue() {
-                                bf.setSpeed(0.1 + this.value * 4.9);
-                            }
+                            @Override protected void updateMessage() { this.setMessage(Component.literal("Speed: " + String.format("%.1f", bf.getSpeed()))); }
+                            @Override protected void applyValue() { bf.setSpeed(0.1 + this.value * 4.9); }
                         };
                         addRenderableWidget(speedSlider);
                         modYOffset += 25;
@@ -255,12 +297,13 @@ public class HackMenuScreen extends Screen {
 
         if (currentTheme == Theme.NEON) {
             // Aesthetic background
-            guiGraphics.fill(0, 0, this.width, this.height, 0x90000000); // Semi-transparent black
-            guiGraphics.fill(20, 20, this.width - 20, this.height - 20, 0x60101010); // Darker inner box
+            guiGraphics.fill(0, 0, this.width, this.height, 0xAA000000); // Semi-transparent black
+            guiGraphics.fill(25, 25, this.width - 25, this.height - 25, 0x80101010); // Darker inner box
 
-            // Neon border
+            // Neon border with slight glow effect
             int neonColor = 0xFF00FFFF; // Cyan
-            guiGraphics.renderOutline(20, 20, this.width - 40, this.height - 40, neonColor);
+            guiGraphics.renderOutline(25, 25, this.width - 50, this.height - 50, neonColor);
+            guiGraphics.renderOutline(24, 24, this.width - 48, this.height - 48, 0x4000FFFF);
         } else if (currentTheme == Theme.CLASSIC) {
             // Classic style but transparent background as requested
             guiGraphics.fill(0, 0, this.width, this.height, 0x70000000);

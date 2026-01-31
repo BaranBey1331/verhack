@@ -8,7 +8,7 @@ public class TimeChanger extends Module {
     private boolean useCommand = false;
 
     public TimeChanger() {
-        super("Time Changer", "Change client-side world time", Category.WORLD);
+        super("Time Changer", "Change client-side world time", Category.MISC);
     }
 
     @Override
