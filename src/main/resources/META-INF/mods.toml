@@ -4,10 +4,10 @@ license="MIT"
 
 [[mods]]
 modId="verhack"
-version="2.0.0"
+version="4.0.0"
 displayName="Verhack"
 authors="Jules"
-description="Learning purpose hack mod."
+description="A powerful hack client for Minecraft 1.20.1 with Neon and Classic themes."
 
 [[dependencies.verhack]]
     modId="forge"

@@ -29,18 +29,35 @@ public class Telekinesis extends Module {
 
             if (grabbedEntity != null) {
                 if (!grabbedEntity.isAlive() || mc().player.distanceTo(grabbedEntity) > 20.0) {
-                    grabbedEntity = null;
+                    releaseEntity();
                     return;
                 }
 
                 Vec3 look = mc().player.getLookAngle();
                 Vec3 targetPos = mc().player.getEyePosition().add(look.scale(5.0));
 
-                grabbedEntity.setPos(targetPos.x, targetPos.y, targetPos.z);
+                // Smoother interpolation
+                double lerpFactor = 0.2;
+                double newX = grabbedEntity.getX() + (targetPos.x - grabbedEntity.getX()) * lerpFactor;
+                double newY = grabbedEntity.getY() + (targetPos.y - grabbedEntity.getEyeHeight()/2.0 - grabbedEntity.getY()) * lerpFactor;
+                double newZ = grabbedEntity.getZ() + (targetPos.z - grabbedEntity.getZ()) * lerpFactor;
+
+                grabbedEntity.setPos(newX, newY, newZ);
                 grabbedEntity.setDeltaMovement(0, 0, 0);
                 grabbedEntity.fallDistance = 0;
+                grabbedEntity.setOnGround(true);
             }
-        } else {
+        } else if (grabbedEntity != null) {
+            releaseEntity();
+        }
+    }
+
+    private void releaseEntity() {
+        if (grabbedEntity != null) {
+            grabbedEntity.setDeltaMovement(0, 0, 0);
+            grabbedEntity.fallDistance = 0;
+            // Force set position again on release to prevent ghosting back
+            grabbedEntity.setPos(grabbedEntity.getX(), grabbedEntity.getY(), grabbedEntity.getZ());
             grabbedEntity = null;
         }
     }
