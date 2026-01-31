@@ -28,7 +28,7 @@ public class KillAura extends Module {
         }
 
         // Search for targets
-        Iterable<Entity> entities = mc.level.entitiesForRendering();
+        Iterable<Entity> entities = mc.level.allEntities();
         List<LivingEntity> targets = StreamSupport.stream(entities.spliterator(), false)
                 .filter(e -> e instanceof LivingEntity)
                 .map(e -> (LivingEntity) e)
