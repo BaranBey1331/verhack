@@ -47,7 +47,7 @@ public class FreeCam extends Module {
         if (mc().options.keyUp.isDown()) {
             motion = motion.add(look.scale(speed));
         }
-        if (mc().options.keyBack.isDown()) {
+        if (mc().options.keyDown.isDown()) {
             motion = motion.subtract(look.scale(speed));
         }
         if (mc().options.keyLeft.isDown()) {
