@@ -5,10 +5,10 @@ import com.example.verhack.module.Module;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 public class KillAura extends Module {
     private double range = 4.5;
@@ -27,16 +27,14 @@ public class KillAura extends Module {
             return;
         }
 
-        // Search for targets
-        Iterable<Entity> entities = mc.level.allEntities();
-        List<LivingEntity> targets = StreamSupport.stream(entities.spliterator(), false)
-                .filter(e -> e instanceof LivingEntity)
-                .map(e -> (LivingEntity) e)
-                .filter(e -> e != mc.player)
-                .filter(e -> e.isAlive())
-                .filter(e -> mc.player.distanceTo(e) <= range)
-                .sorted(Comparator.comparingDouble(e -> mc.player.distanceTo(e)))
-                .toList();
+        // Search for targets using a bounding box inflated by the range
+        AABB area = mc.player.getBoundingBox().inflate(range);
+        List<LivingEntity> targets = mc.level.getEntitiesOfClass(LivingEntity.class, area, e ->
+                e != mc.player && e.isAlive() && mc.player.distanceTo(e) <= range
+        );
+
+        // Sort by distance
+        targets.sort(Comparator.comparingDouble(e -> mc.player.distanceTo(e)));
 
         if (!targets.isEmpty()) {
             LivingEntity target = targets.get(0);
