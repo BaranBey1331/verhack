@@ -20,6 +20,6 @@ Learning purpose hack mod.
 [[dependencies.verhack]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20.1,1.20.1]"
+    versionRange="[1.20.1]"
     ordering="NONE"
     side="BOTH"
