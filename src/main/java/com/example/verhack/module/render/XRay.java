@@ -20,12 +20,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class XRay extends Module {
     private final List<BlockPos> ores = new ArrayList<>();
     private final Set<Block> filteredBlocks = new HashSet<>();
     private int radius = 24;
     private long lastScanTime = 0;
+    private final ExecutorService scanExecutor = Executors.newSingleThreadExecutor();
+    private boolean scanning = false;
 
     public XRay() {
         super("X-Ray", "See ores through blocks", Category.RENDER);
@@ -36,38 +40,65 @@ public class XRay extends Module {
         filteredBlocks.add(Blocks.DEEPSLATE_GOLD_ORE);
         filteredBlocks.add(Blocks.IRON_ORE);
         filteredBlocks.add(Blocks.DEEPSLATE_IRON_ORE);
+        filteredBlocks.add(Blocks.COPPER_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_COPPER_ORE);
+        filteredBlocks.add(Blocks.LAPIS_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_LAPIS_ORE);
+        filteredBlocks.add(Blocks.EMERALD_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_EMERALD_ORE);
         filteredBlocks.add(Blocks.ANCIENT_DEBRIS);
+        filteredBlocks.add(Blocks.NETHER_QUARTZ_ORE);
+        filteredBlocks.add(Blocks.NETHER_GOLD_ORE);
     }
 
     @Override
     public void onEnable() {
         MinecraftForge.EVENT_BUS.register(this);
-        scanForOres();
+        startScan();
     }
 
     @Override
     public void onDisable() {
         MinecraftForge.EVENT_BUS.unregister(this);
-        ores.clear();
+        synchronized (ores) {
+            ores.clear();
+        }
     }
 
     @Override
     public void onTick() {
-        if (System.currentTimeMillis() - lastScanTime > 10000) {
-            scanForOres();
+        if (System.currentTimeMillis() - lastScanTime > 10000 && !scanning) {
+            startScan();
         }
     }
 
-    private void scanForOres() {
+    private void startScan() {
         if (mc().player == null || mc().level == null) return;
+        scanning = true;
+        BlockPos playerPos = mc().player.blockPosition();
+        int scanRadius = radius;
+
+        scanExecutor.execute(() -> {
+            try {
+                scanForOres(playerPos, scanRadius);
+            } finally {
+                scanning = false;
+                lastScanTime = System.currentTimeMillis();
+            }
+        });
+    }
+
+    private void scanForOres(BlockPos center, int r) {
+        if (mc().level == null) return;
 
         List<BlockPos> foundOres = new ArrayList<>();
-        BlockPos playerPos = mc().player.blockPosition();
 
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    BlockPos pos = playerPos.offset(x, y, z);
+        for (int x = -r; x <= r; x++) {
+            for (int y = -r; y <= r; y++) {
+                for (int z = -r; z <= r; z++) {
+                    BlockPos pos = center.offset(x, y, z);
+                    // We must be careful about accessing world state from another thread.
+                    // In many Minecraft versions, getBlockState is somewhat thread-safe for reading.
                     BlockState state = mc().level.getBlockState(pos);
                     if (isOre(state)) {
                         foundOres.add(pos);
@@ -80,7 +111,6 @@ public class XRay extends Module {
             ores.clear();
             ores.addAll(foundOres);
         }
-        lastScanTime = System.currentTimeMillis();
     }
 
     private boolean isOre(BlockState state) {
@@ -93,7 +123,7 @@ public class XRay extends Module {
         } else {
             filteredBlocks.add(block);
         }
-        scanForOres(); // Rescan immediately
+        startScan(); // Rescan immediately
     }
 
     public boolean isBlockFiltered(Block block) {

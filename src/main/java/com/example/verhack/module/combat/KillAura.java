@@ -62,13 +62,14 @@ public class KillAura extends Module {
         float currentYaw = mc().player.getYRot();
         float currentPitch = mc().player.getXRot();
 
-        // Smoothly interpolate yaw
+        // Smoothly interpolate yaw using lerp for natural feel
         float yawDiff = Mth.wrapDegrees(targetYaw - currentYaw);
-        float nextYaw = currentYaw + Mth.clamp(yawDiff, -rotationSpeed, rotationSpeed);
+        float speedFactor = rotationSpeed / 40.0f; // Scale speed for lerp
+        float nextYaw = currentYaw + Mth.wrapDegrees(yawDiff * speedFactor);
 
         // Smoothly interpolate pitch
         float pitchDiff = targetPitch - currentPitch;
-        float nextPitch = currentPitch + Mth.clamp(pitchDiff, -rotationSpeed, rotationSpeed);
+        float nextPitch = currentPitch + (pitchDiff * speedFactor);
 
         mc().player.setYRot(nextYaw);
         mc().player.setXRot(nextPitch);

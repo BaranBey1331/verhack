@@ -4,11 +4,11 @@ import com.example.verhack.module.combat.BowAimbot;
 import com.example.verhack.module.combat.KillAura;
 import com.example.verhack.module.combat.MeleeAimbot;
 import com.example.verhack.module.combat.ProjectileHoming;
-import com.example.verhack.module.misc.ItemSpawner;
+import com.example.verhack.module.exploit.ItemSpawner;
 import com.example.verhack.module.movement.BoatFly;
 import com.example.verhack.module.player.GamemodeSwitcher;
 import com.example.verhack.module.player.Telekinesis;
-import com.example.verhack.module.misc.OpTaker;
+import com.example.verhack.module.exploit.OpTaker;
 import com.example.verhack.module.player.Teleport;
 import com.example.verhack.module.render.FreeCam;
 import com.example.verhack.module.render.XRay;
@@ -63,8 +63,9 @@ public class ModuleManager {
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            for (Module module : modules) {
+        if (event.phase == TickEvent.Phase.START && event.type == TickEvent.Type.CLIENT) {
+            for (int i = 0; i < modules.size(); i++) {
+                Module module = modules.get(i);
                 if (module.isEnabled()) {
                     module.onTick();
                 }
