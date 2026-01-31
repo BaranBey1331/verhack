@@ -37,20 +37,32 @@ public class FreeCam extends Module {
     public void onTick() {
         if (mc().player == null) return;
 
-        mc().player.setDeltaMovement(0, 0, 0);
         mc().player.setOnGround(false);
+        mc().player.getAbilities().flying = true;
 
         double speed = 0.5;
         Vec3 look = mc().player.getLookAngle();
+        Vec3 motion = Vec3.ZERO;
 
         if (mc().options.keyUp.isDown()) {
-            mc().player.setPos(mc().player.getX() + look.x * speed, mc().player.getY() + look.y * speed, mc().player.getZ() + look.z * speed);
+            motion = motion.add(look.scale(speed));
+        }
+        if (mc().options.keyDown.isDown()) {
+            motion = motion.subtract(look.scale(speed));
+        }
+        if (mc().options.keyLeft.isDown()) {
+            motion = motion.add(new Vec3(look.z, 0, -look.x).normalize().scale(speed));
+        }
+        if (mc().options.keyRight.isDown()) {
+            motion = motion.add(new Vec3(-look.z, 0, look.x).normalize().scale(speed));
         }
         if (mc().options.keyJump.isDown()) {
-            mc().player.setPos(mc().player.getX(), mc().player.getY() + speed, mc().player.getZ());
+            motion = motion.add(0, speed, 0);
         }
         if (mc().options.keyShift.isDown()) {
-            mc().player.setPos(mc().player.getX(), mc().player.getY() - speed, mc().player.getZ());
+            motion = motion.subtract(0, speed, 0);
         }
+
+        mc().player.setDeltaMovement(motion);
     }
 }

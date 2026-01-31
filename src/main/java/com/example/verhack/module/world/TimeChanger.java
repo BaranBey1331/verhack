@@ -23,8 +23,14 @@ public class TimeChanger extends Module {
     public void onEnable() {
         if (useCommand && mc().player != null) {
             mc().player.connection.sendCommand("time set " + time);
-            this.setEnabled(false); // Disable after sending command
+            // Don't auto-disable, keep it ON to show it was used
         }
+    }
+
+    @Override
+    public void onDisable() {
+        // When disabling, we don't necessarily want to reset the server time (we can't easily)
+        // but if it was client-side, it will stop forcing it.
     }
 
     public long getTime() {

@@ -100,12 +100,18 @@ public class HackMenuScreen extends Screen {
                 String keyName = module.getKey() == -1 ? "NONE" : org.lwjgl.glfw.GLFW.glfwGetKeyName(module.getKey(), 0);
                 if (keyName == null && module.getKey() != -1) keyName = "KEY " + module.getKey();
 
-                String btnText = listeningModule == module ? "[PRESS KEY]" : "[" + keyName + "]";
-                NeonButton bindBtn = new NeonButton(modXOffset + 165, modYOffset, 60, 20, Component.literal(btnText), b -> {
+                String btnText = listeningModule == module ? "[...]" : "[" + keyName + "]";
+                NeonButton bindBtn = new NeonButton(modXOffset + 165, modYOffset, 50, 20, Component.literal(btnText), b -> {
                     listeningModule = module;
                     updateButtons();
                 });
                 addRenderableWidget(bindBtn);
+
+                NeonButton resetBtn = new NeonButton(modXOffset + 217, modYOffset, 20, 20, Component.literal("X"), b -> {
+                    module.setKey(-1);
+                    updateButtons();
+                });
+                addRenderableWidget(resetBtn);
                 modYOffset += 25;
 
                 // Add settings if enabled
@@ -314,11 +320,20 @@ public class HackMenuScreen extends Screen {
         public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
             if (currentTheme == Theme.NEON) {
                 int color = this.isHoveredOrFocused() ? 0xFF00FFFF : 0xFFAAAAAA;
-                int bgColor = this.isHoveredOrFocused() ? 0x4000FFFF : 0x20000000;
+                int bgColor = this.isHoveredOrFocused() ? 0x60004040 : 0x40101010;
+                int borderColor = this.isHoveredOrFocused() ? 0xFF00FFFF : 0xFF555555;
 
+                // Glowing background
                 guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, bgColor);
-                guiGraphics.renderOutline(getX(), getY(), width, height, color);
-                guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);
+
+                // Border with shadow/glow effect
+                if (this.isHoveredOrFocused()) {
+                    guiGraphics.renderOutline(getX() - 1, getY() - 1, width + 2, height + 2, 0x8000FFFF);
+                }
+                guiGraphics.renderOutline(getX(), getY(), width, height, borderColor);
+
+                int textColor = this.isHoveredOrFocused() ? 0xFFFFFFFF : 0xFFCCCCCC;
+                guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, textColor);
             } else if (currentTheme == Theme.TRANSPARENT) {
                 int color = this.isHoveredOrFocused() ? 0xFFFFFFFF : 0xFFAAAAAA;
                 guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);

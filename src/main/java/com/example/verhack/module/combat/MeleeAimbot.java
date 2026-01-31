@@ -50,8 +50,9 @@ public class MeleeAimbot extends Module {
         float currentYaw = mc().player.getYRot();
         float currentPitch = mc().player.getXRot();
 
-        float nextYaw = currentYaw + Mth.clamp(Mth.wrapDegrees(targetYaw - currentYaw), -rotationSpeed, rotationSpeed);
-        float nextPitch = currentPitch + Mth.clamp(targetPitch - currentPitch, -rotationSpeed, rotationSpeed);
+        float speedFactor = rotationSpeed / 40.0f;
+        float nextYaw = currentYaw + Mth.wrapDegrees(Mth.wrapDegrees(targetYaw - currentYaw) * speedFactor);
+        float nextPitch = currentPitch + (targetPitch - currentPitch) * speedFactor;
 
         mc().player.setYRot(nextYaw);
         mc().player.setXRot(nextPitch);

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ProjectileHoming extends Module {
     private double range = 20.0;
-    private double speed = 0.2;
+    private double speed = 0.05; // Reduced for smoother maneuver
     private boolean glowTarget = false;
 
     public ProjectileHoming() {
@@ -29,7 +29,13 @@ public class ProjectileHoming extends Module {
                     if (target != null) {
                         Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
                         Vec3 dir = targetPos.subtract(arrow.position()).normalize();
-                        Vec3 newVel = arrow.getDeltaMovement().add(dir.scale(speed)).normalize().scale(arrow.getDeltaMovement().length());
+
+                        // Use a smaller fraction of the direction to make it less abrupt
+                        Vec3 currentVel = arrow.getDeltaMovement();
+                        Vec3 targetVel = dir.scale(currentVel.length());
+
+                        // Interpolate between current velocity and target velocity
+                        Vec3 newVel = currentVel.scale(1.0 - speed).add(targetVel.scale(speed));
                         arrow.setDeltaMovement(newVel);
 
                         if (glowTarget) {
