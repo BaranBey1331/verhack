@@ -34,10 +34,10 @@ public class HackMenuScreen extends Screen {
         // Category buttons (left side)
         for (Category category : Category.values()) {
             final Category cat = category;
-            NeonButton btn = new NeonButton(xOffset, yOffset, 80, 20, Component.literal(cat.name()), b -> {
+            NeonButton btn = Button.builder(Component.literal(cat.name()), b -> {
                 selectedCategory = cat;
                 updateButtons();
-            });
+            }).pos(xOffset, yOffset).size(80, 20).build(NeonButton::new);
 
             if (selectedCategory == cat) {
                 btn.setMessage(Component.literal("> " + cat.name()));
@@ -55,10 +55,10 @@ public class HackMenuScreen extends Screen {
             for (Module module : modules) {
                 String status = module.isEnabled() ? " [ON]" : " [OFF]";
 
-                NeonButton modBtn = new NeonButton(modXOffset, modYOffset, 160, 20, Component.literal(module.getName() + status), b -> {
+                NeonButton modBtn = Button.builder(Component.literal(module.getName() + status), b -> {
                     module.toggle();
                     updateButtons();
-                });
+                }).pos(modXOffset, modYOffset).size(160, 20).build(NeonButton::new);
 
                 addRenderableWidget(modBtn);
                 modYOffset += 25;
@@ -82,10 +82,10 @@ public class HackMenuScreen extends Screen {
                         modYOffset += 22;
 
                         // Rotations Toggle
-                        NeonButton rotBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Rotations: " + (ka.isRotations() ? "ON" : "OFF")), b -> {
+                        NeonButton rotBtn = Button.builder(Component.literal("Rotations: " + (ka.isRotations() ? "ON" : "OFF")), b -> {
                             ka.setRotations(!ka.isRotations());
                             updateButtons();
-                        });
+                        }).pos(modXOffset + 10, modYOffset).size(140, 20).build(NeonButton::new);
                         addRenderableWidget(rotBtn);
                         modYOffset += 22;
 
@@ -136,8 +136,8 @@ public class HackMenuScreen extends Screen {
     }
 
     private static class NeonButton extends Button {
-        public NeonButton(int x, int y, int width, int height, Component message, OnPress onPress) {
-            super(x, y, width, height, message, onPress, DEFAULT_NARRATION);
+        public NeonButton(Button.Builder builder) {
+            super(builder);
         }
 
         @Override
