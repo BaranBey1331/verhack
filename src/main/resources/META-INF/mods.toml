@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="verhack"
-version="2.0.0-alpha"
+version="2.0.0"
 displayName="Verhack"
 authors="Jules"
 description="Learning purpose hack mod."
