@@ -190,8 +190,8 @@ public class HackMenuScreen extends Screen {
 
                         for (int i = 0; i < names.length; i++) {
                             final net.minecraft.world.level.block.Block b = blocks[i];
-                            String status = xray.isBlockFiltered(b) ? " [ON]" : " [OFF]";
-                            NeonButton oreBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal(names[i] + status), press -> {
+                            String blockStatus = xray.isBlockFiltered(b) ? " [ON]" : " [OFF]";
+                            NeonButton oreBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal(names[i] + blockStatus), press -> {
                                 xray.toggleBlock(b);
                                 updateButtons();
                             });

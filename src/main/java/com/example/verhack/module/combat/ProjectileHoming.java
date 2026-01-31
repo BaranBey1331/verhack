@@ -22,8 +22,8 @@ public class ProjectileHoming extends Module {
     public void onTick() {
         if (mc().level == null || mc().player == null) return;
 
-        for (net.minecraft.world.entity.Entity entity : mc().level.allEntities()) {
-            if (entity instanceof AbstractArrow arrow && !arrow.isOnGround()) {
+        for (net.minecraft.world.entity.Entity entity : mc().level.getEntities(null, e -> true)) {
+            if (entity instanceof AbstractArrow arrow && !arrow.onGround()) {
                 if (arrow.getOwner() == mc().player) {
                     LivingEntity target = findTarget(arrow);
                     if (target != null) {
