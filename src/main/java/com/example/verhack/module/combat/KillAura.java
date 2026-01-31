@@ -72,6 +72,7 @@ public class KillAura extends Module {
 
         mc().player.setYRot(nextYaw);
         mc().player.setXRot(nextPitch);
+        mc().player.yHeadRot = nextYaw;
     }
 
     private void attack(Entity target) {
