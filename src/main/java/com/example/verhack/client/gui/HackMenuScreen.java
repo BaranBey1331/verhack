@@ -4,6 +4,9 @@ import com.example.verhack.Verhack;
 import com.example.verhack.module.Category;
 import com.example.verhack.module.Module;
 import com.example.verhack.module.combat.KillAura;
+import com.example.verhack.module.movement.BoatFly;
+import com.example.verhack.module.render.XRay;
+import com.example.verhack.module.world.TimeChanger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -14,10 +17,12 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 
 public class HackMenuScreen extends Screen {
-    private Category selectedCategory = Category.COMBAT;
+    public enum Theme { NEON, CLASSIC }
+    public static Theme currentTheme = Theme.NEON;
+    private Category selectedCategory = Category.THEME;
 
     public HackMenuScreen() {
-        super(Component.literal("Verhack Client - v2 Alpha"));
+        super(Component.translatable("gui.verhack.title"));
     }
 
     @Override
@@ -34,13 +39,14 @@ public class HackMenuScreen extends Screen {
         // Category buttons (left side)
         for (Category category : Category.values()) {
             final Category cat = category;
-            NeonButton btn = new NeonButton(xOffset, yOffset, 80, 20, Component.literal(cat.name()), b -> {
+            Component catName = Component.translatable("category." + cat.name().toLowerCase());
+            NeonButton btn = new NeonButton(xOffset, yOffset, 80, 20, catName, b -> {
                 selectedCategory = cat;
                 updateButtons();
             });
 
             if (selectedCategory == cat) {
-                btn.setMessage(Component.literal("> " + cat.name()));
+                btn.setMessage(Component.literal("> ").append(catName));
             }
 
             addRenderableWidget(btn);
@@ -50,12 +56,31 @@ public class HackMenuScreen extends Screen {
         // Module buttons (right side)
         int modXOffset = 135;
         int modYOffset = 55;
+
+        if (selectedCategory == Category.THEME) {
+            addRenderableWidget(new NeonButton(modXOffset, modYOffset, 160, 20, Component.translatable("gui.verhack.theme.neon"), b -> {
+                currentTheme = Theme.NEON;
+                updateButtons();
+            }));
+            modYOffset += 25;
+            addRenderableWidget(new NeonButton(modXOffset, modYOffset, 160, 20, Component.translatable("gui.verhack.theme.classic"), b -> {
+                currentTheme = Theme.CLASSIC;
+                updateButtons();
+            }));
+            return;
+        }
+
+        if (selectedCategory == Category.CHANGELOG) {
+            return;
+        }
+
         if (Verhack.getInstance().getModuleManager() != null) {
             List<Module> modules = Verhack.getInstance().getModuleManager().getModulesByCategory(selectedCategory);
             for (Module module : modules) {
                 String status = module.isEnabled() ? " [ON]" : " [OFF]";
+                Component modName = Component.translatable("module." + module.getName().toLowerCase().replace(" ", "") + ".name");
 
-                NeonButton modBtn = new NeonButton(modXOffset, modYOffset, 160, 20, Component.literal(module.getName() + status), b -> {
+                NeonButton modBtn = new NeonButton(modXOffset, modYOffset, 160, 20, modName.copy().append(status), b -> {
                     module.toggle();
                     updateButtons();
                 });
@@ -67,7 +92,7 @@ public class HackMenuScreen extends Screen {
                 if (module.isEnabled()) {
                     if (module instanceof KillAura ka) {
                         // Slider for Range
-                        AbstractSliderButton rangeSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Range: " + String.format("%.1f", ka.getRange())), (ka.getRange() - 2.0) / 8.0) {
+                        AbstractSliderButton rangeSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Range: " + String.format("%.1f", ka.getRange())), (ka.getRange() - 2.0) / 18.0) {
                             @Override
                             protected void updateMessage() {
                                 this.setMessage(Component.literal("Range: " + String.format("%.1f", ka.getRange())));
@@ -75,7 +100,7 @@ public class HackMenuScreen extends Screen {
 
                             @Override
                             protected void applyValue() {
-                                ka.setRange(2.0 + this.value * 8.0);
+                                ka.setRange(2.0 + this.value * 18.0);
                             }
                         };
                         addRenderableWidget(rangeSlider);
@@ -90,7 +115,7 @@ public class HackMenuScreen extends Screen {
                         modYOffset += 22;
 
                         // Rotation Speed Slider
-                        AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Rot Speed: " + String.format("%.1f", ka.getRotationSpeed())), (ka.getRotationSpeed() - 1.0) / 19.0) {
+                        AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Rot Speed: " + String.format("%.1f", ka.getRotationSpeed())), (ka.getRotationSpeed() - 1.0) / 39.0) {
                             @Override
                             protected void updateMessage() {
                                 this.setMessage(Component.literal("Rot Speed: " + String.format("%.1f", ka.getRotationSpeed())));
@@ -98,10 +123,52 @@ public class HackMenuScreen extends Screen {
 
                             @Override
                             protected void applyValue() {
-                                ka.setRotationSpeed(1.0f + (float)this.value * 19.0f);
+                                ka.setRotationSpeed(1.0f + (float)this.value * 39.0f);
                             }
                         };
                         addRenderableWidget(speedSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof BoatFly bf) {
+                        AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Speed: " + String.format("%.1f", bf.getSpeed())), (bf.getSpeed() - 0.1) / 4.9) {
+                            @Override
+                            protected void updateMessage() {
+                                this.setMessage(Component.literal("Speed: " + String.format("%.1f", bf.getSpeed())));
+                            }
+
+                            @Override
+                            protected void applyValue() {
+                                bf.setSpeed(0.1 + this.value * 4.9);
+                            }
+                        };
+                        addRenderableWidget(speedSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof XRay xray) {
+                        AbstractSliderButton radiusSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Radius: " + xray.getRadius()), (xray.getRadius() - 16.0) / 112.0) {
+                            @Override
+                            protected void updateMessage() {
+                                this.setMessage(Component.literal("Radius: " + xray.getRadius()));
+                            }
+
+                            @Override
+                            protected void applyValue() {
+                                xray.setRadius(16 + (int)(this.value * 112));
+                            }
+                        };
+                        addRenderableWidget(radiusSlider);
+                        modYOffset += 25;
+                    } else if (module instanceof TimeChanger tc) {
+                        AbstractSliderButton timeSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Time: " + tc.getTime()), (double)tc.getTime() / 24000.0) {
+                            @Override
+                            protected void updateMessage() {
+                                this.setMessage(Component.literal("Time: " + tc.getTime()));
+                            }
+
+                            @Override
+                            protected void applyValue() {
+                                tc.setTime((long)(this.value * 24000));
+                            }
+                        };
+                        addRenderableWidget(timeSlider);
                         modYOffset += 25;
                     }
                 }
@@ -116,18 +183,44 @@ public class HackMenuScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // Aesthetic background
-        guiGraphics.fill(0, 0, this.width, this.height, 0x90000000); // Semi-transparent black
-        guiGraphics.fill(20, 20, this.width - 20, this.height - 20, 0x60101010); // Darker inner box
+        if (selectedCategory == Category.CHANGELOG) {
+            renderChangelog(guiGraphics);
+            super.render(guiGraphics, mouseX, mouseY, partialTick);
+            return;
+        }
 
-        // Neon border
-        int neonColor = 0xFF00FFFF; // Cyan
-        guiGraphics.renderOutline(20, 20, this.width - 40, this.height - 40, neonColor);
+        if (currentTheme == Theme.NEON) {
+            // Aesthetic background
+            guiGraphics.fill(0, 0, this.width, this.height, 0x90000000); // Semi-transparent black
+            guiGraphics.fill(20, 20, this.width - 20, this.height - 20, 0x60101010); // Darker inner box
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 25, 0x00FFFFFF);
-        guiGraphics.drawString(this.font, "Category: " + selectedCategory.name(), 135, 40, 0xAAAAAA);
+            // Neon border
+            int neonColor = 0xFF00FFFF; // Cyan
+            guiGraphics.renderOutline(20, 20, this.width - 40, this.height - 40, neonColor);
+        } else {
+            // Classic Minecraft UI style (dirt background)
+            this.renderBackground(guiGraphics);
+            guiGraphics.fill(30, 30, this.width - 30, this.height - 30, 0xCC101010);
+        }
+
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 25, 0xFFFFFFFF);
+        Component translatedCat = Component.translatable("category." + selectedCategory.name().toLowerCase());
+        guiGraphics.drawString(this.font, Component.translatable("gui.verhack.category", translatedCat), 135, 40, 0xAAAAAA);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderChangelog(GuiGraphics guiGraphics) {
+        this.renderBackground(guiGraphics);
+        guiGraphics.fill(20, 20, this.width - 20, this.height - 20, 0xCC101010);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("gui.verhack.changelog.title"), this.width / 2, 30, 0x00FFFF);
+
+        int y = 50;
+        for (int i = 1; i <= 10; i++) {
+            guiGraphics.drawString(this.font, Component.translatable("gui.verhack.changelog.line" + i), 140, y, 0xAAAAAA);
+            y += 15;
+            if (y > this.height - 40) break;
+        }
     }
 
     @Override
@@ -142,12 +235,16 @@ public class HackMenuScreen extends Screen {
 
         @Override
         public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            int color = this.isHoveredOrFocused() ? 0xFF00FFFF : 0xFFAAAAAA;
-            int bgColor = this.isHoveredOrFocused() ? 0x4000FFFF : 0x20000000;
+            if (currentTheme == Theme.NEON) {
+                int color = this.isHoveredOrFocused() ? 0xFF00FFFF : 0xFFAAAAAA;
+                int bgColor = this.isHoveredOrFocused() ? 0x4000FFFF : 0x20000000;
 
-            guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, bgColor);
-            guiGraphics.renderOutline(getX(), getY(), width, height, color);
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);
+                guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, bgColor);
+                guiGraphics.renderOutline(getX(), getY(), width, height, color);
+                guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);
+            } else {
+                super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+            }
         }
     }
 }

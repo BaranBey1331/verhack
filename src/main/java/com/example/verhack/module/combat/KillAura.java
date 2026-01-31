@@ -92,7 +92,7 @@ public class KillAura extends Module {
 
     public void incrementRange() {
         this.range += 0.5;
-        if (this.range > 10.0) this.range = 2.0;
+        if (this.range > 20.0) this.range = 2.0;
     }
 
     public boolean isRotations() {

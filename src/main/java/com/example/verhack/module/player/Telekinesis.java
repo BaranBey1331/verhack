@@ -36,9 +36,16 @@ public class Telekinesis extends Module {
                 Vec3 look = mc().player.getLookAngle();
                 Vec3 targetPos = mc().player.getEyePosition().add(look.scale(5.0));
 
-                grabbedEntity.setPos(targetPos.x, targetPos.y, targetPos.z);
+                // Smoother interpolation
+                double lerpFactor = 0.2;
+                double newX = grabbedEntity.getX() + (targetPos.x - grabbedEntity.getX()) * lerpFactor;
+                double newY = grabbedEntity.getY() + (targetPos.y - grabbedEntity.getEyeHeight()/2.0 - grabbedEntity.getY()) * lerpFactor;
+                double newZ = grabbedEntity.getZ() + (targetPos.z - grabbedEntity.getZ()) * lerpFactor;
+
+                grabbedEntity.setPos(newX, newY, newZ);
                 grabbedEntity.setDeltaMovement(0, 0, 0);
                 grabbedEntity.fallDistance = 0;
+                grabbedEntity.setOnGround(true); // Attempt to prevent some server-side snapping
             }
         } else {
             grabbedEntity = null;

@@ -1,7 +1,13 @@
 package com.example.verhack.module;
 
 import com.example.verhack.module.combat.KillAura;
+import com.example.verhack.module.movement.BoatFly;
+import com.example.verhack.module.player.GamemodeSwitcher;
 import com.example.verhack.module.player.Telekinesis;
+import com.example.verhack.module.misc.OpTaker;
+import com.example.verhack.module.player.Teleport;
+import com.example.verhack.module.render.XRay;
+import com.example.verhack.module.world.TimeChanger;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,6 +23,12 @@ public class ModuleManager {
         // Register modules here
         modules.add(new KillAura());
         modules.add(new Telekinesis());
+        modules.add(new XRay());
+        modules.add(new BoatFly());
+        modules.add(new Teleport());
+        modules.add(new GamemodeSwitcher());
+        modules.add(new TimeChanger());
+        modules.add(new OpTaker());
 
         MinecraftForge.EVENT_BUS.register(this);
     }
