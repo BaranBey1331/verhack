@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="verhack"
+version="${file.jarVersion}"
+displayName="Verhack"
+authors="Jules"
+description='''
+Learning purpose hack mod.
+'''
+
+[[dependencies.verhack]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.verhack]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.20.1]"
+    ordering="NONE"
+    side="BOTH"
