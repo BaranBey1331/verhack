@@ -11,16 +11,23 @@ public class Teleport extends Module {
     }
 
     @Override
-    public void onEnable() {
-        if (mc().player != null && mc().hitResult != null) {
-            if (mc().hitResult.getType() == HitResult.Type.BLOCK) {
+    public void onTick() {
+        if (mc().player == null || mc().screen != null) return;
+
+        if (mc().options.keyUse.isDown()) {
+            if (mc().hitResult != null && mc().hitResult.getType() == HitResult.Type.BLOCK) {
                 BlockHitResult blockHit = (BlockHitResult) mc().hitResult;
                 double x = blockHit.getBlockPos().getX() + 0.5;
                 double y = blockHit.getBlockPos().getY() + 1.0;
                 double z = blockHit.getBlockPos().getZ() + 0.5;
                 mc().player.setPos(x, y, z);
+                this.setEnabled(false); // Disable after teleporting
             }
         }
-        this.setEnabled(false); // Disable after one use
+    }
+
+    @Override
+    public void onEnable() {
+        // Just stay enabled until used
     }
 }

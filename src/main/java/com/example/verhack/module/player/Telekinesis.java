@@ -29,7 +29,7 @@ public class Telekinesis extends Module {
 
             if (grabbedEntity != null) {
                 if (!grabbedEntity.isAlive() || mc().player.distanceTo(grabbedEntity) > 20.0) {
-                    grabbedEntity = null;
+                    releaseEntity();
                     return;
                 }
 
@@ -45,9 +45,19 @@ public class Telekinesis extends Module {
                 grabbedEntity.setPos(newX, newY, newZ);
                 grabbedEntity.setDeltaMovement(0, 0, 0);
                 grabbedEntity.fallDistance = 0;
-                grabbedEntity.setOnGround(true); // Attempt to prevent some server-side snapping
+                grabbedEntity.setOnGround(true);
             }
-        } else {
+        } else if (grabbedEntity != null) {
+            releaseEntity();
+        }
+    }
+
+    private void releaseEntity() {
+        if (grabbedEntity != null) {
+            grabbedEntity.setDeltaMovement(0, 0, 0);
+            grabbedEntity.fallDistance = 0;
+            // Force set position again on release to prevent ghosting back
+            grabbedEntity.setPos(grabbedEntity.getX(), grabbedEntity.getY(), grabbedEntity.getZ());
             grabbedEntity = null;
         }
     }

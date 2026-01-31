@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -16,15 +17,26 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class XRay extends Module {
     private final List<BlockPos> ores = new ArrayList<>();
+    private final Set<Block> filteredBlocks = new HashSet<>();
     private int radius = 24;
     private long lastScanTime = 0;
 
     public XRay() {
         super("X-Ray", "See ores through blocks", Category.RENDER);
+        // Default ores
+        filteredBlocks.add(Blocks.DIAMOND_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_DIAMOND_ORE);
+        filteredBlocks.add(Blocks.GOLD_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_GOLD_ORE);
+        filteredBlocks.add(Blocks.IRON_ORE);
+        filteredBlocks.add(Blocks.DEEPSLATE_IRON_ORE);
+        filteredBlocks.add(Blocks.ANCIENT_DEBRIS);
     }
 
     @Override
@@ -72,10 +84,20 @@ public class XRay extends Module {
     }
 
     private boolean isOre(BlockState state) {
-        return state.is(Blocks.DIAMOND_ORE) || state.is(Blocks.DEEPSLATE_DIAMOND_ORE) ||
-               state.is(Blocks.GOLD_ORE) || state.is(Blocks.DEEPSLATE_GOLD_ORE) ||
-               state.is(Blocks.IRON_ORE) || state.is(Blocks.DEEPSLATE_IRON_ORE) ||
-               state.is(Blocks.ANCIENT_DEBRIS);
+        return filteredBlocks.contains(state.getBlock());
+    }
+
+    public void toggleBlock(Block block) {
+        if (filteredBlocks.contains(block)) {
+            filteredBlocks.remove(block);
+        } else {
+            filteredBlocks.add(block);
+        }
+        scanForOres(); // Rescan immediately
+    }
+
+    public boolean isBlockFiltered(Block block) {
+        return filteredBlocks.contains(block);
     }
 
     @SubscribeEvent
